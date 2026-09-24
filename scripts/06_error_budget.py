@@ -244,7 +244,7 @@ for q, c, ls in [(mc["median"][-1], "k", "-"), (mc["lo68"][-1], "gray", ":"),
     ax.axvline(q, color=c, ls=ls, lw=1.4)
 ax.axvline(C_TARGET, color="C3", lw=2, label="reportado")
 ax.set(xlabel="contraste total", ylabel="densidad",
-       title=f"(B) MC n=4000  ->  {c_med:.3f} $$\\pm$$ {mc['std'][-1]:.3f}")
+       title=f"(B) MC n=4000  ->  {c_med:.3f} $\\pm$ {mc['std'][-1]:.3f}")
 ax.legend(fontsize=7); ax.grid(alpha=0.3)
 
 # --- (3) tornado ---
@@ -255,7 +255,7 @@ col = ["C3" if ps[n].provenance.value == "assumed" else "C0" for n in lbl]
 ax.barh(range(len(lbl)), con, color=col, alpha=0.85)
 ax.set_yticks(range(len(lbl)))
 ax.set_yticklabels([n.replace("_", " ") for n in lbl], fontsize=7)
-ax.set(xlabel="$$|\\partial C/\\partial p|\\cdot\\sigma_p$$",
+ax.set(xlabel="$|\\partial C/\\partial p|\\cdot\\sigma_p$",
        title="(C) Tornado — rojo = ASSUMED")
 ax.grid(alpha=0.3, axis="x")
 
@@ -269,9 +269,9 @@ ax.axhspan(C_TARGET - ps.std("contrast_reported"),
 ax.axvline(t_exp_fit * 1e6, color="C3", lw=1.8,
            label=f"inferido = {t_exp_fit*1e6:.1f} µs")
 ax.axvline(TAU * 1e6, color="C2", ls=":", lw=1.4,
-           label=f"$$\\tau(^3P_1)$$ = {TAU*1e6:.0f} µs")
-ax.set(xlabel="$$t_{\\rm exposure}$$ [µs]", ylabel="contraste modelado",
-       title="(A1) Inversión de $$t_{\\rm exposure}$$")
+           label=f"$\\tau(^3P_1)$ = {TAU*1e6:.0f} µs")
+ax.set(xlabel="$t_{\\rm exposure}$ [µs]", ylabel="contraste modelado",
+       title="(A1) Inversión de $t_{\\rm exposure}$")
 ax.legend(fontsize=7); ax.grid(alpha=0.3)
 
 # --- (5) inversión de t2 ---
@@ -281,12 +281,12 @@ ax.semilogx(t2_scan[fin] * 1e6, tc_scan[fin] * 1e6, "C0o-", ms=5)
 ax.axhline(T_COH_TARGET * 1e6, color="k", ls="--", lw=1.5,
            label="118 µs reportado")
 ax.axhline(tc_scan[-1] * 1e6, color="C2", ls=":", lw=1.4,
-           label=f"$$t_2=\\infty$$: {tc_scan[-1]*1e6:.0f} µs")
+           label=f"$t_2=\\infty$: {tc_scan[-1]*1e6:.0f} µs")
 if np.isfinite(t2_fit):
     ax.axvline(t2_fit * 1e6, color="C3", lw=1.8,
                label=f"inferido = {t2_fit*1e6:.0f} µs")
-ax.set(xlabel="$$t_2$$ (defasaje) [µs]", ylabel="$$T_{\\rm coh}$$ ajustado [µs]",
-       title="(A2) Inversión de $$t_2$$")
+ax.set(xlabel="$t_2$ (defasaje) [µs]", ylabel="$T_{\\rm coh}$ ajustado [µs]",
+       title="(A2) Inversión de $t_2$")
 ax.legend(fontsize=7); ax.grid(alpha=0.3, which="both")
 
 # --- (6) Debye-Waller vs nbar: el mando más importante ---
@@ -297,11 +297,29 @@ for eta, ls in [(ETA_R, "-"), (ETA_R / 2, "--"), (2 * ETA_R, ":")]:
     dw = debye_waller_factor(eta, n)
     c = [float((thermal_weights(x, 80) * np.sin(np.pi * dw / 2) ** 2).sum())
          for x in nb]
-    ax.semilogx(nb, c, ls, label=f"$$\\eta_r$$ = {eta:.3f}")
-ax.axvline(NBAR_R, color="C3", lw=1.8, label=f"$$\\bar n$$ ASSUMED = {NBAR_R:.1f}")
+    ax.semilogx(nb, c, ls, label=f"$\\eta_r$ = {eta:.3f}")
+ax.axvline(NBAR_R, color="C3", lw=1.8, label=f"$\\bar n$ ASSUMED = {NBAR_R:.1f}")
 ax.axhline(C_TARGET, color="k", ls="--", lw=1.2)
-ax.set(xlabel="$$\\bar n$$ radial", ylabel="contraste Debye-Waller",
-       title="El mando que domina: $$\\bar n$$ radial")
+ax.set(xlabel="$\\bar n$ radial", ylabel="contraste Debye-Waller",
+       title="El mando que domina: $\\bar n$ radial")
 ax.legend(fontsize=7); ax.grid(alpha=0.3, which="both")
 
-fig.suptitle("06 — Presupuesto
+fig.suptitle("06 — Presupuesto de error y análisis inverso  |  "
+             "Schmidt et al., Science 309, 749 (2005), DOI 10.1126/science.1114375",
+             fontsize=10)
+out = qlsim.figpath("06_error_budget.png")
+fig.savefig(out, dpi=160, bbox_inches="tight")
+print(f"\n-> {out}")
+
+print(qlsim.banner("PARA TU CUADERNO DE LABORATORIO"))
+print(f"""
+  1. El contraste NO es un número mágico: es un producto de {len(FACTORS)}
+     factores. El dominante aquí es '{rank[0][0]}'.
+  2. Los dos parámetros que el paper no reporta (t_exposure, t2_dephasing)
+     quedan CONSTRAINED por las observables publicadas... o el ajuste falla,
+     y entonces has aprendido que un ASSUMED está mal (típicamente nbar_radial).
+  3. Prioridad de medida en nuestra trampa, según el tornado:
+     {', '.join(n for n, _, _ in sens[:3])}
+  4. Ejercicio E6: repite este tornado con NUESTROS parámetros
+     (`qlsim.our_trap(...)`) y compara el ranking. Puede cambiar por completo.
+""")
